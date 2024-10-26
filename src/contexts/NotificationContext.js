@@ -5,7 +5,19 @@ const NotificationContext = createContext();
 
 export const NotificationProvider = ({ children }) => {
   const notify = (message, type) => {
-    toast[type](message); // Utiliser les méthodes de toast
+    const toastTypes = {
+      success: toast.success,
+      error: toast.error,
+      info: toast.info,
+      warn: toast.warn,
+    };
+
+    const toastFunction = toastTypes[type];
+    if (toastFunction) {
+      toastFunction(message);
+    } else {
+      console.error(`Invalid toast type: ${type}`);
+    }
   };
 
   return (

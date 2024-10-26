@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useNotification } from "../contexts/NotificationContext";
+import { useAuth } from "../contexts/authContext"; // Importez le contexte d'auth
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-  const notify = useNotification(); // Déstructure notify à partir du hook
+  const notify = useNotification();
+  const { setIsAuthenticated } = useAuth(); // Récupérer setIsAuthenticated du contexte d'auth
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,7 +30,11 @@ const Login = () => {
 
       const data = await response.json();
       notify(data.message, "success");
-      navigate("/");
+
+      // Mettez à jour l'état d'authentification ici
+      setIsAuthenticated(true); // Indique que l'utilisateur est maintenant authentifié
+
+      navigate("/"); // Rediriger vers la page d'accueil
     } catch (error) {
       console.error("Fetch Error:", error);
       notify(error.message, "error");

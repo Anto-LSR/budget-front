@@ -16,4 +16,4 @@ root.render(
 );
 
 // Si tu veux mesurer les performances de ton app
-reportWebVitals();
+// reportWebVitals();

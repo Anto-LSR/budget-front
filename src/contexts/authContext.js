@@ -1,40 +1,41 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(null); // null pour indiquer que l'auth est en cours de validation
+  const [loading, setLoading] = useState(true); // pour gérer le chargement
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const validateAuth = async () => {
       try {
-        const response = await fetch("http://localhost:3001/auth/validate", {
-          method: "GET",
-          credentials: "include", // Inclut le cookie HttpOnly dans la requête
+        console.log('zz');
+        
+        const response = await fetch('http://localhost:3001/auth/validate', {
+          method: 'GET',
+          credentials: 'include',
         });
-
-        if (response.ok) {
-          setIsAuthenticated(true);
-        } else {
-          setIsAuthenticated(false);
-        }
+        const data = await response.json();
+        setIsAuthenticated(response.ok ? data.authenticated : false);
       } catch (error) {
-        console.error(
-          "Erreur lors de la vérification de l'authentification :",
-          error
-        );
+        console.error('Erreur lors de la validation:', error);
         setIsAuthenticated(false);
+      } finally {
+        setLoading(false);
       }
     };
 
-    checkAuth();
-  }, []);
+    validateAuth();
+  }, []); // L'effet ne s'exécute qu'une seule fois
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated }}>
+    <AuthContext.Provider value={{ isAuthenticated, loading, setIsAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+// Hook pour utiliser le contexte
+export const useAuth = () => {
+  return useContext(AuthContext);
+};
