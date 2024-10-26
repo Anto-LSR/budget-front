@@ -135,7 +135,7 @@ const MainLayout = ({ children }) => {
       </main>
 
       <footer className="bg-gray-800 text-white text-center p-4 w-full">
-        © 2024 MyApp
+        © 2024 Bernard-Budget - Tous droits réservés
       </footer>
     </div>
   );

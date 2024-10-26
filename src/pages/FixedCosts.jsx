@@ -170,7 +170,7 @@ const FixedCosts = () => {
           <div className="overflow-x-auto">
             <table className="w-full border border-gray-300">
               <thead>
-                <tr className="bg-gray-100">
+                <tr className="bg-gray-100 text-justify">
                   <th className="py-2 px-4 border-b">Nom</th>
                   <th className="py-2 px-4 border-b">Montant (€)</th>
                   <th className="py-2 px-4 border-b">Catégorie</th>

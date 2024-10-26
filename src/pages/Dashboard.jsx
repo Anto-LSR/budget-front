@@ -11,7 +11,26 @@ const Dashboard = () => {
   const [onceExpenses, setOnceExpenses] = useState([]);
   const [subscriptionExpenses, setSubscriptionExpenses] = useState([]);
   const [installmentExpenses, setInstallmentExpenses] = useState([]);
+  const [negativeExpenses, setNegativeExpenses] = useState([]);
   const [incomes, setIncomes] = useState([]);
+  const [newNegativeExpense, setNewNegativeExpense] = useState("");
+
+  const handleCreateNegativeExpense = async () => {
+    try {
+      await axios.post(
+        "http://localhost:3001/expenses/addNegativeExpense",
+        {
+          amount: newNegativeExpense,
+          category: "negative",
+        },
+        { withCredentials: true }
+      );
+      fetchExpenses();
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Erreur lors de la création de la catégorie:", error);
+    }
+  };
 
   const fetchExpenses = async () => {
     try {
@@ -62,6 +81,9 @@ const Dashboard = () => {
       );
       setInstallmentExpenses(
         response.data.filter((expense) => expense.type === "installment")
+      );
+      setNegativeExpenses(
+        response.data.filter((expense) => expense.type === "negative")
       );
 
       const typeTranslations = {
@@ -114,6 +136,16 @@ const Dashboard = () => {
     fetchIncomes();
   }, []);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const openModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
   return (
     <div className="flex min-h-screen flex-col lg:flex-row">
       <main className="flex-grow p-4 lg:p-8 relative z-10">
@@ -128,6 +160,15 @@ const Dashboard = () => {
               <h3 className="text-l font-semibold">Revenus</h3>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="bg-green-300 shadow-md rounded-lg p-4">
+                <h3 className="text-lg font-medium">Revenus Totaux</h3>
+                <p className="text-2xl font-bold">
+                  {incomes
+                    .reduce((total, income) => total + income.amount, 0)
+                    .toFixed(2)}{" "}
+                  €
+                </p>
+              </div>
               <div className="bg-white shadow-md rounded-lg p-4">
                 <h3 className="text-lg font-medium">Revenus fixes</h3>
                 <p className="text-2xl font-bold">
@@ -148,23 +189,41 @@ const Dashboard = () => {
                   €
                 </p>
               </div>
-              <div className="bg-white shadow-md rounded-lg p-4">
-                <h3 className="text-lg font-medium">Revenus Totaux</h3>
-                <p className="text-2xl font-bold">
-                  {incomes
-                    .reduce((total, income) => total + income.amount, 0)
-                    .toFixed(2)}{" "}
-                  €
-                </p>
-              </div>
             </div>
           </div>
 
           <div className="mb-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-l font-semibold">Dépenses</h3>
+              <button
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md"
+                onClick={openModal}
+              >
+                Ajouter un négatif de début de mois
+              </button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="bg-blue-300 shadow-md rounded-lg p-4">
+                <h3 className="text-lg font-medium">Dépenses totales</h3>
+                <p className="text-2xl font-bold">
+                  {expenses
+                    .reduce((total, expense) => total + expense.amount, 0)
+                    .toFixed(2)}{" "}
+                  €
+                </p>
+              </div>
+              <div className="bg-red-300 shadow-md rounded-lg p-4">
+                <h3 className="text-lg font-medium">
+                  Négatif de début de mois
+                </h3>
+                <p className="text-2xl font-bold">
+                  -
+                  {negativeExpenses
+                    .reduce((total, expense) => total + expense.amount, 0)
+                    .toFixed(2)}{" "}
+                  €
+                </p>
+              </div>
               <div className="bg-white shadow-md rounded-lg p-4">
                 <h3 className="text-lg font-medium">Charges fixes</h3>
                 <p className="text-2xl font-bold">
@@ -216,15 +275,6 @@ const Dashboard = () => {
                   €
                 </p>
               </div>
-              <div className="bg-white shadow-md rounded-lg p-4">
-                <h3 className="text-lg font-medium">Dépenses totales</h3>
-                <p className="text-2xl font-bold">
-                  {expenses
-                    .reduce((total, expense) => total + expense.amount, 0)
-                    .toFixed(2)}{" "}
-                  €
-                </p>
-              </div>
             </div>
           </div>
         </section>
@@ -240,6 +290,36 @@ const Dashboard = () => {
           <PieChart chartData={categoryChartData} />{" "}
         </div>
       </main>
+      {isModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+            <h3 className="text-lg font-semibold mb-4">
+              Négatif début de mois
+            </h3>
+            <input
+              type="text"
+              value={newNegativeExpense}
+              onChange={(e) => setNewNegativeExpense(e.target.value)}
+              placeholder="Négatif début de mois"
+              className="border border-gray-300 rounded p-2 mb-4 w-full"
+            />
+            <div className="flex justify-end">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="bg-gray-300 text-gray-700 px-4 py-2 rounded mr-2"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleCreateNegativeExpense}
+                className="bg-blue-500 text-white px-4 py-2 rounded"
+              >
+                Enregistrer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

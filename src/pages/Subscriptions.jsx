@@ -192,9 +192,9 @@ const Subscriptions = () => {
         <section>
           <h2 className="text-xl font-semibold mb-4">Liste des Abonnements</h2>
           <div className="overflow-x-auto">
-            <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+            <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden border-gray-300">
               <thead>
-                <tr>
+                <tr className="bg-gray-100 text-justify">
                   <th className="py-2 px-4 border-b">Nom</th>
                   <th className="py-2 px-4 border-b">Montant (€)</th>
                   <th className="py-2 px-4 border-b">Catégorie</th>
