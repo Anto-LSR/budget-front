@@ -60,29 +60,14 @@ const MainLayout = ({ children }) => {
   };
 
   // Définir les éléments du menu de la barre latérale
-  const getSidebarMenu = () => {
-    switch (location.pathname) {
-      case "/dashboard":
-        return [
-          { name: "Revenus", link: "/income" },
-          { name: "Charges fixes", link: "/fixedcosts" },
-          { name: "Abonnements", link: "/subscriptions" },
-          { name: "Dépenses", link: "/profile" },
-        ];
-      case "/subscriptions":
-        return [
-          { name: "Tableau de bord", link: "/dashboard" },
-          { name: "Charges fixes", link: "/fixedcosts" },
-        ];
-      case "/fixedcosts":
-        return [
-          { name: "Tableau de bord", link: "/dashboard" },
-          { name: "Abonnements", link: "/subscriptions" },
-        ];
-      default:
-        return [];
-    }
-  };
+  const getSidebarMenu = () => [
+    { name: "Tableau de bord", link: "/dashboard" },
+    { name: "Revenus", link: "/income" },
+    { name: "Charges fixes", link: "/fixedcosts" },
+    { name: "Abonnements", link: "/subscriptions" },
+    { name: "Dépenses", link: "/expenses" },
+    { name: "Paiements en plusieurs fois", link: "/installmentPayments" },
+  ];
 
   const sidebarMenu = getSidebarMenu();
 
@@ -140,6 +125,7 @@ const MainLayout = ({ children }) => {
               isOpen={sidebarOpen}
               toggleSidebar={toggleSidebar}
               menuItems={sidebarMenu}
+              activeLink={location.pathname} // Passer le lien actif
             />
           )}
           <div className={`flex-grow ${sidebarOpen ? "ml-64" : "ml-0"}`}>

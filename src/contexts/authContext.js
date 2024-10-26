@@ -8,9 +8,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const validateAuth = async () => {
-      try {
-        console.log('zz');
-        
+      try {        
         const response = await fetch('http://localhost:3001/auth/validate', {
           method: 'GET',
           credentials: 'include',

@@ -11,6 +11,9 @@ import { AuthProvider } from "./contexts/authContext"; // Ajoutez AuthProvider
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import FixedCosts from "./pages/FixedCosts";
+import Income from "./pages/Income";
+import Expenses from "./pages/Expenses";
+import InstallmentPayments from "./pages/InstallmentPayments";
 
 function App() {
   return (
@@ -26,6 +29,9 @@ function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/subscriptions" element={<Subscriptions />} />
               <Route path="/fixedcosts" element={<FixedCosts />} />
+              <Route path="/income" element={<Income />} />
+              <Route path="/expenses" element={<Expenses />} />
+              <Route path="/installmentPayments" element={<InstallmentPayments />} />
             </Routes>
           </MainLayout>
           <ToastContainer position="bottom-right" />{" "}

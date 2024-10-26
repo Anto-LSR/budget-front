@@ -1,52 +1,121 @@
-// Dashboard.js
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Modal from "../components/Modal";
 import PieChart from "../components/Piechart";
-
-const AddIncome = () => (
-  <div>
-    <h3>Ajouter un revenu</h3>
-    {/* Formulaire ou autre contenu pour ajouter un revenu */}
-  </div>
-);
-
-const AddExpense = () => (
-  <div>
-    <h3>Ajouter une dépense</h3>
-    {/* Formulaire ou autre contenu pour ajouter une dépense */}
-  </div>
-);
+import axios from "axios";
 
 const Dashboard = () => {
-  const [modal, setModal] = useState({
-    isOpen: false,
-    title: "",
-    content: null,
-  });
+  const [expenses, setExpenses] = useState([]);
+  const [chartData, setChartData] = useState([]);
+  const [categoryChartData, setCategoryChartData] = useState([]);
+  const [fixedCosts, setFixedCosts] = useState([]);
+  const [onceExpenses, setOnceExpenses] = useState([]);
+  const [subscriptionExpenses, setSubscriptionExpenses] = useState([]);
+  const [installmentExpenses, setInstallmentExpenses] = useState([]);
+  const [incomes, setIncomes] = useState([]);
 
-  const handleOpenModal = (title, content) => {
-    setModal({ isOpen: true, title, content });
+  const fetchExpenses = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:3001/expenses/getExpenseSummary`,
+        { withCredentials: true }
+      );
+      setExpenses(response.data);
+
+      const aggregatedData = response.data.reduce((acc, expense) => {
+        const type = expense.type;
+        if (type) {
+          if (!acc[type]) {
+            acc[type] = 0;
+          }
+          acc[type] += expense.amount;
+          acc[type] = parseFloat(acc[type].toFixed(2));
+        }
+        return acc;
+      }, {});
+
+      const aggregatedCategoryData = response.data.reduce((acc, expense) => {
+        const category = expense.categoryEntity?.name;
+        if (category) {
+          if (!acc[category]) {
+            acc[category] = 0;
+          }
+          acc[category] += expense.amount;
+          acc[category] = parseFloat(acc[category].toFixed(2));
+        }
+        return acc;
+      }, {});
+
+      setFixedCosts(
+        response.data.filter((expense) => expense.type === "fixed")
+      );
+      setOnceExpenses(
+        response.data.filter(
+          (expense) =>
+            expense.type === "once" &&
+            new Date(expense.dateCreate).getMonth() === new Date().getMonth() &&
+            new Date(expense.dateCreate).getFullYear() ===
+              new Date().getFullYear()
+        )
+      );
+      setSubscriptionExpenses(
+        response.data.filter((expense) => expense.type === "subscription")
+      );
+      setInstallmentExpenses(
+        response.data.filter((expense) => expense.type === "installment")
+      );
+
+      const typeTranslations = {
+        fixed: "Charges fixes",
+        once: "Dépenses du mois en cours",
+        subscription: "Abonnements",
+        installment: "Paiement en plusieurs fois",
+      };
+
+      const translatedData = response.data.map((expense) => {
+        const translatedType = typeTranslations[expense.type] || expense.type;
+        return { ...expense, type: translatedType };
+      });
+
+      setExpenses(translatedData);
+
+      const chartData = Object.keys(aggregatedData).map((type) => ({
+        label: typeTranslations[type] || type,
+        value: aggregatedData[type],
+      }));
+
+      setChartData(chartData);
+
+      const categoryChartData = Object.keys(aggregatedCategoryData).map(
+        (category) => ({
+          label: category,
+          value: aggregatedCategoryData[category],
+        })
+      );
+      setCategoryChartData(categoryChartData);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des dépenses:", error);
+    }
   };
 
-  const handleCloseModal = () => {
-    setModal({ ...modal, isOpen: false, content: null });
+  const fetchIncomes = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:3001/incomes/getIncomes`,
+        { withCredentials: true }
+      );
+      setIncomes(response.data);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des revenus:", error);
+    }
   };
 
-
-
-  const chartData = [
-    { label: "Revenus fixes", value: 1200 },
-    { label: "Revenus additionnels", value: 3000 },
-    { label: "Charges fixes", value: 800 },
-    { label: "Dépenses variables", value: 500 },
-  ];
+  useEffect(() => {
+    fetchExpenses();
+    fetchIncomes();
+  }, []);
 
   return (
     <div className="flex min-h-screen flex-col lg:flex-row">
-      {/* Sidebar */}
-
-
-      {/* Main Content */}
       <main className="flex-grow p-4 lg:p-8 relative z-10">
         <header className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold">Tableau de bord</h1>
@@ -57,27 +126,36 @@ const Dashboard = () => {
           <div className="mb-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-l font-semibold">Revenus</h3>
-              <button
-                onClick={() =>
-                  handleOpenModal("Ajouter un revenu", <AddIncome />)
-                }
-                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-              >
-                Ajouter un revenu
-              </button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="bg-white shadow-md rounded-lg p-4">
                 <h3 className="text-lg font-medium">Revenus fixes</h3>
-                <p className="text-2xl font-bold">$1,200</p>
+                <p className="text-2xl font-bold">
+                  {incomes
+                    .filter((income) => income.isFixed)
+                    .reduce((total, income) => total + income.amount, 0)
+                    .toFixed(2)}{" "}
+                  €
+                </p>
               </div>
               <div className="bg-white shadow-md rounded-lg p-4">
                 <h3 className="text-lg font-medium">Revenus Additionnels</h3>
-                <p className="text-2xl font-bold">$3,000</p>
+                <p className="text-2xl font-bold">
+                  {incomes
+                    .filter((income) => !income.isFixed)
+                    .reduce((total, income) => total + income.amount, 0)
+                    .toFixed(2)}{" "}
+                  €
+                </p>
               </div>
               <div className="bg-white shadow-md rounded-lg p-4">
                 <h3 className="text-lg font-medium">Revenus Totaux</h3>
-                <p className="text-2xl font-bold">$3,000</p>
+                <p className="text-2xl font-bold">
+                  {incomes
+                    .reduce((total, income) => total + income.amount, 0)
+                    .toFixed(2)}{" "}
+                  €
+                </p>
               </div>
             </div>
           </div>
@@ -85,42 +163,82 @@ const Dashboard = () => {
           <div className="mb-4">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-l font-semibold">Dépenses</h3>
-              <button
-                onClick={() =>
-                  handleOpenModal("Ajouter une dépense", <AddExpense />)
-                }
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-              >
-                Ajouter une dépense
-              </button>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="bg-white shadow-md rounded-lg p-4">
                 <h3 className="text-lg font-medium">Charges fixes</h3>
-                <p className="text-2xl font-bold">$800</p>
+                <p className="text-2xl font-bold">
+                  {fixedCosts
+                    .reduce((total, expense) => total + expense.amount, 0)
+                    .toFixed(2)}{" "}
+                  €
+                </p>
               </div>
               <div className="bg-white shadow-md rounded-lg p-4">
-                <h3 className="text-lg font-medium">Dépenses du mois en cours</h3>
-                <p className="text-2xl font-bold">$800</p>
+                <h3 className="text-lg font-medium">
+                  Dépenses du mois en cours
+                </h3>
+                <p className="text-2xl font-bold">
+                  {onceExpenses
+                    .reduce((total, expense) => total + expense.amount, 0)
+                    .toFixed(2)}{" "}
+                  €
+                </p>
+              </div>
+              <div className="bg-white shadow-md rounded-lg p-4">
+                <h3 className="text-lg font-medium">Abonnements</h3>
+                <p className="text-2xl font-bold">
+                  {subscriptionExpenses
+                    .reduce((total, expense) => total + expense.amount, 0)
+                    .toFixed(2)}{" "}
+                  €
+                </p>
+              </div>
+              <div className="bg-white shadow-md rounded-lg p-4">
+                <h3 className="text-lg font-medium">
+                  {
+                    installmentExpenses.filter(
+                      (expense) => expense.type === "installment"
+                    ).length
+                  }
+                  &nbsp;
+                  {installmentExpenses.filter(
+                    (expense) => expense.type === "installment"
+                  ).length > 1
+                    ? "Paiements"
+                    : "Paiement"}{" "}
+                  en plusieurs fois en cours
+                </h3>
+                <p className="text-2xl font-bold">
+                  {installmentExpenses
+                    .reduce((total, expense) => total + expense.amount, 0)
+                    .toFixed(2)}{" "}
+                  €
+                </p>
+              </div>
+              <div className="bg-white shadow-md rounded-lg p-4">
+                <h3 className="text-lg font-medium">Dépenses totales</h3>
+                <p className="text-2xl font-bold">
+                  {expenses
+                    .reduce((total, expense) => total + expense.amount, 0)
+                    .toFixed(2)}{" "}
+                  €
+                </p>
               </div>
             </div>
           </div>
         </section>
 
         <div className="mt-6">
+          <h2 className="text-xl font-semibold mb-4">
+            Répartition des dépenses
+          </h2>
           <PieChart chartData={chartData} />
+          <h2 className="text-xl font-semibold mb-4 mt-6">
+            Répartition par Catégorie
+          </h2>
+          <PieChart chartData={categoryChartData} />{" "}
         </div>
-
-        {/* Modale */}
-        {modal.isOpen && (
-          <Modal
-            isOpen={modal.isOpen}
-            onClose={handleCloseModal}
-            title={modal.title}
-          >
-            {modal.content}
-          </Modal>
-        )}
       </main>
     </div>
   );

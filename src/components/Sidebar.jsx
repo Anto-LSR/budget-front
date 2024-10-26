@@ -1,6 +1,6 @@
 import React from "react";
 
-const Sidebar = ({ isOpen, toggleSidebar, menuItems }) => (
+const Sidebar = ({ isOpen, toggleSidebar, menuItems, activeLink }) => (
   <aside
     className={`fixed top-0 left-0 h-screen w-64 bg-gray-800 text-white p-5 rounded transition-transform duration-300 transform ${
       isOpen ? "translate-x-0" : "-translate-x-full"
@@ -15,7 +15,14 @@ const Sidebar = ({ isOpen, toggleSidebar, menuItems }) => (
     <ul>
       {menuItems.map((item, index) => (
         <li key={index} className="mb-4">
-          <a href={item.link} className="hover:text-gray-300">
+          <a
+            href={item.link}
+            className={`block py-2 px-4 rounded ${
+              activeLink === item.link
+                ? "bg-gray-700 text-white"
+                : "text-gray-300 hover:bg-gray-600 hover:text-white"
+            }`}
+          >
             {item.name}
           </a>
         </li>
